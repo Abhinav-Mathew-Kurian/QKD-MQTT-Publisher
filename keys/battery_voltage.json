@@ -1,0 +1,9 @@
+{
+  "kty": "oct",
+  "kid": "qkd-Key5",
+  "alg": "A256GCM",
+  "created": "2025-08-19T00:00:00Z",
+  "expires": null,
+  "usage": ["encrypt", "decrypt"],
+  "key_b64": "vkCUGV9q2imdgV2AiVZifvAsU8d3PPYQq7vQYnox4YA="
+}

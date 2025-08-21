@@ -1,0 +1,17 @@
+{
+  "name": "publisher",
+  "version": "1.0.0",
+  "main": "producer1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bull": "^4.16.5",
+    "mqtt": "^5.14.0",
+    "redis": "^5.8.1"
+  }
+}
