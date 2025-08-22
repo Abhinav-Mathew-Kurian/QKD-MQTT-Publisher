@@ -22,20 +22,34 @@ const client = mqtt.connect(BROKER_URL, {
   password: PASSWORD,
   rejectUnauthorized: true
 });
-
-let temp = 30; 
-let increasing = true;
+let temp = 32; // start around ambient
+let heating = true; 
 
 client.on("connect", () => {
   console.log(`🚀 Producer connected, publishing to ${TOPIC} every 3s...`);
 
   setInterval(() => {
+    // --- Update battery temperature realistically ---
+    if (heating) {
+      // Heating phase (driving / charging)
+      temp += Math.random() * 0.2; // ~0.0–0.2°C rise per 3s (~2–4°C per min demo speed)
+      if (temp >= 45) {
+        heating = false; // cooling kicks in around 45°C
+      }
+    } else {
+      // Cooling phase (thermal management / idle)
+      temp -= Math.random() * 0.15; // slow cooling
+      if (temp <= 32) {
+        heating = true; // back to heating
+      }
+    }
+
     const payload = {
       timestamp: new Date().toISOString(),
-      battery_temperature: temp
+      battery_temperature: parseFloat(temp.toFixed(2))
     };
 
-    // Encrypt
+    // --- Encrypt ---
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
     let enc = cipher.update(JSON.stringify(payload), "utf8");
@@ -51,18 +65,9 @@ client.on("connect", () => {
       data: enc.toString("base64")
     };
 
+    // --- Publish ---
     client.publish(TOPIC, JSON.stringify(encryptedMsg));
     console.log(`📡 Published encrypted to ${TOPIC} | Payload: ${JSON.stringify(encryptedMsg)}`);
 
-
-    if (increasing) {
-      temp += 1;
-      if (temp >= 50) increasing = false; 
-    } else {
-      temp -= 1;
-      if (temp <= 30) increasing = true; 
-    }
-
   }, 3000);
 });
-
