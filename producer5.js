@@ -23,15 +23,18 @@ const client = mqtt.connect(BROKER_URL, {
   rejectUnauthorized: true
 });
 
-let voltage = 400; 
+let voltage = 420; // start full
 
 client.on("connect", () => {
   console.log(`🚀 Producer connected, publishing battery_voltage to ${TOPIC} every 3s...`);
 
   setInterval(() => {
+    // add small ripple noise (±0.2V)
+    const noisyVoltage = voltage + (Math.random() - 0.5) * 0.4;
+
     const payload = {
       timestamp: new Date().toISOString(),
-      battery_voltage: voltage.toFixed(2) 
+      battery_voltage: parseFloat(noisyVoltage.toFixed(2))
     };
 
     // Encrypt
@@ -53,11 +56,13 @@ client.on("connect", () => {
     client.publish(TOPIC, JSON.stringify(encryptedMsg));
     console.log(`📡 Published encrypted to ${TOPIC} | Payload: ${JSON.stringify(encryptedMsg)}`);
 
+    // gradual discharge
+    voltage -= 0.2; 
 
-    voltage -= 0.5; 
-    voltage += (Math.random() - 0.5) * 0.2; 
-
-    if (voltage < 300) voltage = 420; 
+    // reset cycle when "empty"
+    if (voltage < 300) {
+      voltage = 420; // recharge back to full
+    }
 
   }, 3000);
 });
